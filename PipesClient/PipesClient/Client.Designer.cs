@@ -33,6 +33,9 @@
             this.tbPipe = new System.Windows.Forms.TextBox();
             this.lblMessage = new System.Windows.Forms.Label();
             this.tbMessage = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.nickBox = new System.Windows.Forms.TextBox();
+            this.messagesTB = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // btnSend
@@ -78,11 +81,38 @@
             this.tbMessage.Size = new System.Drawing.Size(188, 20);
             this.tbMessage.TabIndex = 1;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 103);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(95, 13);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "введите никнейм";
+            // 
+            // nickBox
+            // 
+            this.nickBox.Location = new System.Drawing.Point(113, 100);
+            this.nickBox.Name = "nickBox";
+            this.nickBox.Size = new System.Drawing.Size(163, 20);
+            this.nickBox.TabIndex = 4;
+            // 
+            // messagesTB
+            // 
+            this.messagesTB.Location = new System.Drawing.Point(2, 148);
+            this.messagesTB.Name = "messagesTB";
+            this.messagesTB.Size = new System.Drawing.Size(367, 248);
+            this.messagesTB.TabIndex = 5;
+            this.messagesTB.Text = "";
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(369, 90);
+            this.ClientSize = new System.Drawing.Size(369, 396);
+            this.Controls.Add(this.messagesTB);
+            this.Controls.Add(this.nickBox);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.tbMessage);
             this.Controls.Add(this.lblMessage);
             this.Controls.Add(this.tbPipe);
@@ -103,5 +133,8 @@
         private System.Windows.Forms.TextBox tbPipe;
         private System.Windows.Forms.Label lblMessage;
         private System.Windows.Forms.TextBox tbMessage;
+        private System.Windows.Forms.Label label1;
+        public System.Windows.Forms.TextBox nickBox;
+        private System.Windows.Forms.RichTextBox messagesTB;
     }
 }

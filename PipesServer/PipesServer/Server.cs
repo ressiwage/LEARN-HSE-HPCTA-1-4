@@ -4,11 +4,15 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
+using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+
+
 
 namespace Pipes
 {
@@ -17,13 +21,68 @@ namespace Pipes
         private Int32 PipeHandle;                                                       // дескриптор канала
         private string PipeName = "\\\\" + Dns.GetHostName() + "\\pipe\\ServerPipe";    // имя канала, Dns.GetHostName() - метод, возвращающий имя машины, на которой запущено приложение
         private Thread t;                                                               // поток для обслуживания канала
-        private bool _continue = true;                                                  // флаг, указывающий продолжается ли работа с каналом
+        private volatile bool _continue = true;                                                  // флаг, указывающий продолжается ли работа с каналом
+
+        public static bool IsBasicLetter(char c)
+        {
+            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+        }
+        public static bool FormatValid(string format)
+        {
+
+            foreach (char c in format)
+            {
+                // This is using String.Contains for .NET 2 compat.,
+                //   hence the requirement for ToString()
+                if (!IsBasicLetter(c))
+                    return false;
+            }
+
+            return true;
+        }
+        public static String getPipeValidName() {
+            Form prompt = new Form()
+            {
+                Width = 500,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "введите никнейм",
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            Label textLabel = new Label() { Left = 50, Top=20, Text="введите никнейм", Width=400 };
+            TextBox textBox = new TextBox() { Left = 50, Top=50, Width=400 };
+            Button confirmation = new Button() { Text = "Ok", Left=350, Width=100, Top=70 };
+            confirmation.Click += (sender, e) => {
+                if (FormatValid(textBox.Text))
+                {
+                    prompt.Close();
+                }
+                else
+                {
+                    textLabel.Text = "Некорректный ввод. Никнейм должен содержать только латинские буквы";
+                    textLabel.ForeColor = Color.Red;
+                }
+            };
+            prompt.Controls.Add(textBox);
+            prompt.Controls.Add(confirmation);
+            prompt.Controls.Add(textLabel);
+            prompt.AcceptButton = confirmation;
+            prompt.ShowDialog();
+            String nickname = textBox.Text == "" ? "anon" : textBox.Text;
+            return nickname;
+        }
 
         // конструктор формы
         public frmMain()
         {
+            String nickname = getPipeValidName();
+            Console.WriteLine(nickname);
             InitializeComponent();
+            на будущее: нужно будет сделать так: в сообщение зашит получатель и отправитель. Сервер получает сообщение 
+             по пайпу server и пытается открыть пайп-никнейм. если не получилось, возвращает ответ "не получилось", иначе возвращает ок.
+               также клиент открывает у себя 2 пайпа: пайп для сервера и именованный пайп для получения сообщений.
 
+            новый план: в треде 
             // создание именованного канала
             PipeHandle = DIS.Import.CreateNamedPipe("\\\\.\\pipe\\ServerPipe", DIS.Types.PIPE_ACCESS_DUPLEX, DIS.Types.PIPE_TYPE_BYTE | DIS.Types.PIPE_WAIT, DIS.Types.PIPE_UNLIMITED_INSTANCES, 0, 1024, DIS.Types.NMPWAIT_WAIT_FOREVER, (uint)0);
 

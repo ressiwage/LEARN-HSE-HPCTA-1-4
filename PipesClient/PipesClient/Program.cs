@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Windows.Forms;
 
 namespace Pipes
@@ -15,7 +16,9 @@ namespace Pipes
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmMain());
+            frmMain form = new frmMain();
+            form.nickBox.Text =  Dns.GetHostName();
+            Application.Run(form);
         }
     }
 }
