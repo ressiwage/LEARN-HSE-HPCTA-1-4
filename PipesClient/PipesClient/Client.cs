@@ -27,7 +27,7 @@ namespace Pipes
         }
         public static bool FormatValid(string format)
         {
-
+            if (format.Length == 0) return false;
             foreach (char c in format)
             {
                 // This is using String.Contains for .NET 2 compat.,
@@ -101,6 +101,7 @@ namespace Pipes
         {
             this.nickname = getPipeValidName();
             InitializeComponent();
+            nickBox.Text = "ваш ник: " + this.nickname;
             this.Text += "     " + Dns.GetHostName();   // выводим имя текущей машины в заголовок формы
             this.NicknameNamedPipeHandle = DIS.Import.CreateNamedPipe("\\\\.\\pipe\\"+this.nickname, 
                 DIS.Types.PIPE_ACCESS_DUPLEX, 
@@ -119,7 +120,11 @@ namespace Pipes
         private void btnSend_Click(object sender, EventArgs e)
         {
             uint BytesWritten = 0;  // количество реально записанных в канал байт
-            byte[] buff = Encoding.Unicode.GetBytes(Dns.GetHostName().ToString() + " : " + (nickBox.Text==""?"anonymous":nickBox.Text) + " >> " + tbMessage.Text);    // выполняем преобразование сообщения (вместе с идентификатором машины) в последовательность байт
+            string dnsHostName = Dns.GetHostName().ToString();
+            string nick = this.nickname;
+            byte[] buff = Encoding.Unicode.GetBytes(
+                dnsHostName + " <:> " + nick + " <:> " + tbMessage.Text.Replace(" <:> ", "") + " <:> "
+                );    // выполняем преобразование сообщения (вместе с идентификатором машины) в последовательность байт
 
             // открываем именованный канал, имя которого указано в поле tbPipe
             PipeHandle = DIS.Import.CreateFile(tbPipe.Text, DIS.Types.EFileAccess.GenericWrite, DIS.Types.EFileShare.Read, 0, DIS.Types.ECreationDisposition.OpenExisting, 0, 0);

@@ -17,7 +17,7 @@ namespace Pipes
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             frmMain form = new frmMain();
-            form.nickBox.Text =  Dns.GetHostName();
+            //form.nickBox.Text =  Dns.GetHostName();
             Application.Run(form);
         }
     }

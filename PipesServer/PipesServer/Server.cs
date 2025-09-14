@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -22,6 +23,7 @@ namespace Pipes
         private string PipeName = "\\\\" + Dns.GetHostName() + "\\pipe\\ServerPipe";    // имя канала, Dns.GetHostName() - метод, возвращающий имя машины, на которой запущено приложение
         private Thread t;                                                               // поток для обслуживания канала
         private volatile bool _continue = true;                                                  // флаг, указывающий продолжается ли работа с каналом
+        private List<string> clients = new List<string>(); 
 
         public static bool IsBasicLetter(char c)
         {
@@ -71,18 +73,29 @@ namespace Pipes
             String nickname = textBox.Text == "" ? "anon" : textBox.Text;
             return nickname;
         }
+        public uint SendToPipe(string message, string pipe)
+        {
+            uint BytesWritten = 0;  // количество реально записанных в канал байт
+            byte[] buff = Encoding.Unicode.GetBytes(
+                message
+                );    // выполняем преобразование сообщения (вместе с идентификатором машины) в последовательность байт
 
+            // открываем именованный канал, имя которого указано в поле tbPipe
+            Int32 PipeHandle = DIS.Import.CreateFile(pipe, DIS.Types.EFileAccess.GenericWrite, DIS.Types.EFileShare.Read, 0, DIS.Types.ECreationDisposition.OpenExisting, 0, 0);
+            DIS.Import.WriteFile(PipeHandle, buff, Convert.ToUInt32(buff.Length), ref BytesWritten, 0);         // выполняем запись последовательности байт в канал
+            DIS.Import.CloseHandle(PipeHandle);
+            return BytesWritten;
+        }
         // конструктор формы
         public frmMain()
         {
-            String nickname = getPipeValidName();
-            Console.WriteLine(nickname);
-            InitializeComponent();
-            на будущее: нужно будет сделать так: в сообщение зашит получатель и отправитель. Сервер получает сообщение 
-             по пайпу server и пытается открыть пайп-никнейм. если не получилось, возвращает ответ "не получилось", иначе возвращает ок.
-               также клиент открывает у себя 2 пайпа: пайп для сервера и именованный пайп для получения сообщений.
 
-            новый план: в треде 
+            InitializeComponent();
+            //на будущее: нужно будет сделать так: в сообщение зашит получатель и отправитель. Сервер получает сообщение 
+            // по пайпу server и пытается открыть пайп-никнейм. если не получилось, возвращает ответ "не получилось", иначе возвращает ок.
+            //   также клиент открывает у себя 2 пайпа: пайп для сервера и именованный пайп для получения сообщений.
+
+            //новый план: в треде 
             // создание именованного канала
             PipeHandle = DIS.Import.CreateNamedPipe("\\\\.\\pipe\\ServerPipe", DIS.Types.PIPE_ACCESS_DUPLEX, DIS.Types.PIPE_TYPE_BYTE | DIS.Types.PIPE_WAIT, DIS.Types.PIPE_UNLIMITED_INSTANCES, 0, 1024, DIS.Types.NMPWAIT_WAIT_FOREVER, (uint)0);
 
@@ -108,10 +121,31 @@ namespace Pipes
                     DIS.Import.FlushFileBuffers(PipeHandle);                                // "принудительная" запись данных, расположенные в буфере операционной системы, в файл именованного канала
                     DIS.Import.ReadFile(PipeHandle, buff, 1024, ref realBytesReaded, 0);    // считываем последовательность байтов из канала в буфер buff
                     msg = Encoding.Unicode.GetString(buff);                                 // выполняем преобразование байтов в последовательность символов
+                    Console.WriteLine(msg);
                     rtbMessages.Invoke((MethodInvoker)delegate
                     {
                         if (msg != "")
-                            rtbMessages.Text += "\n >> " + msg;                             // выводим полученное сообщение на форму
+                        {
+                            string[] data = msg.Split(new string[] { " <:> " }, StringSplitOptions.None);
+                            string clientpipename = "\\\\"+data[0]+"\\pipe\\"+data[1];
+                            if (!clients.Contains(clientpipename))
+                            {
+                                clients.Add(clientpipename);
+                                rtbParticipants.Text += data[1] + "\n";
+                            }
+                            DateTime dt = DateTime.Now;
+                            string time = dt.Hour + ":" + dt.Minute+":"+dt.Second;
+
+                            string message = "\n >> "  + data[1] + "|" + data[0] + "|" + time  + ":  " + data[2];                             // выводим полученное сообщение на форму
+                            rtbMessages.Text += message;
+                            foreach (string pipe in clients)
+                            {
+                                Console.WriteLine(message+" "+pipe);
+                                SendToPipe(message, pipe);
+                            }
+
+                        }
+                            
                     });
 
                     DIS.Import.DisconnectNamedPipe(PipeHandle);                             // отключаемся от канала клиента 
