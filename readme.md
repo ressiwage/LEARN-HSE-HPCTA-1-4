@@ -3,6 +3,11 @@
 # задание
 см. [./task.md](./task.md)
 
+# запуск
+- .\PipesClient\PipesClient\bin\Debug\PipesClient.exe
+- .\PipesClient\PipesClient\bin\Debug\PipesClient.exe
+- .\PipesServer\PipesServer\bin\Debug\PipesServer.exe
+
 # решение
 
 1. поведение при нескольких серверах
