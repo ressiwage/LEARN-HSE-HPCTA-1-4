@@ -106,6 +106,18 @@ namespace Pipes
             t = new Thread(ReceiveMessage);
             t.Start();
         }
+        private string pipesToText(List<string> clients)
+        {
+            return String.Join("\n",
+                                    (new List<string> { "participants" }).Concat(
+                                        clients.Select(
+                                            x => {
+                                                string[] splitted = x.Split(new string[] { "\\" }, StringSplitOptions.None);
+                                                return splitted[splitted.Count()-1];
+                                            }
+                                            ).ToArray()
+                                        ).ToArray());
+        }
 
         private void ReceiveMessage()
         {
@@ -131,17 +143,28 @@ namespace Pipes
                             if (!clients.Contains(clientpipename))
                             {
                                 clients.Add(clientpipename);
-                                rtbParticipants.Text += data[1] + "\n";
+                                rtbParticipants.Text = pipesToText(clients);
                             }
                             DateTime dt = DateTime.Now;
                             string time = dt.Hour + ":" + dt.Minute+":"+dt.Second;
 
                             string message = "\n >> "  + data[1] + "|" + data[0] + "|" + time  + ":  " + data[2];                             // выводим полученное сообщение на форму
                             rtbMessages.Text += message;
+                            List<string> delete = new List<string>();
                             foreach (string pipe in clients)
                             {
                                 Console.WriteLine(message+" "+pipe);
-                                SendToPipe(message, pipe);
+                                if (SendToPipe(message, pipe) == 0)
+                                {
+                                    delete.Add(pipe);
+                              
+
+                                }
+                            }
+                            foreach (var pipe in delete)
+                            {
+                                clients.Remove(pipe);
+                                rtbParticipants.Text = pipesToText(clients);
                             }
 
                         }
