@@ -17,6 +17,7 @@ a() lock at 0s
 b() lock at 2s
 c() lock at 5s
 
+```
 send message 
 a - got message, lock at 6s
 b - lock at 2s
@@ -36,7 +37,7 @@ send message
 a - got message, lock at 20s
 b - got message, lock at 9s
 c - got message, lock at 15s
-
+```
 
 то есть:
 рид из пайпа блокирует процесс. т.к. процессы не запускаются одновременно они блокируются в порядке запуска и встают в системный шедулер.
